@@ -5,7 +5,7 @@ import { TextBlock } from '@/components/TextBlock';
 import { OpenAIModel, TranslateBody } from '@/types/types';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function Home() {
   const [inputLanguage, setInputLanguage] = useState<string>('JavaScript');
@@ -30,12 +30,14 @@ export default function Home() {
     }
 
     if (inputCode.length > maxCodeLength) {
-      toast.error(`Code too long. Max ${maxCodeLength} characters.`);
+      toast.error(`Please enter code less than ${maxCodeLength} characters.`);
       return;
     }
 
     setLoading(true);
     setOutputCode('');
+
+    const controller = new AbortController();
 
     const body: TranslateBody = {
       inputLanguage,
@@ -44,40 +46,45 @@ export default function Home() {
       model,
     };
 
-    try {
-      const response = await fetch('/api/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      console.log('Response:', response);
+    const response = await fetch('/api/translate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal,
+      body: JSON.stringify(body),
+    });
 
-      if (!response.ok || !response.body) {
-        throw new Error(response.statusText);
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-      let code = '';
-
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        const chunk = decoder.decode(value);
-        code += chunk;
-        setOutputCode((prev) => prev + chunk);
-      }
-
-      setHasTranslated(true);
-      copyToClipboard(code);
-      toast.success('Translation complete! Output copied to clipboard.');
-    } catch (error: any) {
-      console.error('Translation error:', error);
-      toast.error('Internal Server Error' , error.message);
-    } finally {
+    if (!response.ok) {
       setLoading(false);
+      toast.error('Something went wrong.');
+      return;
     }
+
+    const data = response.body;
+    if (!data) {
+      setLoading(false);
+      toast.error('Something went wrong.');
+      return;
+    }
+
+    const reader = data.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+    let code = '';
+
+    while (!done) {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      const chunkValue = decoder.decode(value);
+      code += chunkValue;
+      setOutputCode((prev) => prev + chunkValue);
+    }
+
+    setLoading(false);
+    setHasTranslated(true);
+    copyToClipboard(code);
+    toast.success('Output copied to clipboard!');
   };
 
   const copyToClipboard = (text: string) => {
@@ -90,28 +97,28 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (hasTranslated) handleTranslate();
+    if (hasTranslated) {
+      handleTranslate();
+    }
   }, [outputLanguage]);
 
   return (
     <>
       <Head>
-        <title>Code Translator</title>
+        <title>Creativeminds AI Code Translator</title>
         <meta name="description" content="Use AI to translate code from one language to another." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <Toaster position="top-right" />
 
-      <div className="flex h-full min-h-screen flex-col items-center bg-[#0E1117] px-4 pb-20 text-neutral-200 sm:px-10">
-        <div className="mt-10 flex flex-col items-center justify-center sm:mt-20">
-          <h1 className="text-4xl font-bold">AI Code Translator</h1>
-        </div>
+      <main className="flex min-h-screen flex-col items-center bg-[#0E1117] px-4 py-10 text-neutral-200">
+        <h1 className="mb-8 text-4xl font-bold text-center">Creativeminds AI Code Translator</h1>
 
-        <div className="mt-6 flex items-center space-x-2">
+        <div className="mb-4 flex flex-col items-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
           <ModelSelect model={model} onChange={(value) => setModel(value)} />
-
           <button
-            className="w-[140px] rounded-md bg-violet-500 px-4 py-2 font-bold hover:bg-violet-600 active:bg-violet-700"
+            className="rounded-lg bg-violet-600 px-6 py-2 font-semibold hover:bg-violet-700 disabled:opacity-50"
             onClick={handleTranslate}
             disabled={loading}
           >
@@ -119,13 +126,13 @@ export default function Home() {
           </button>
         </div>
 
-        <div className="mt-6 flex w-full max-w-[1400px] flex-col justify-between gap-8 sm:flex-row">
-          <div className="flex flex-1 flex-col space-y-4">
-            <div className="text-center text-xl font-bold">Input</div>
+        <div className="grid w-full max-w-6xl grid-cols-1 gap-6 sm:grid-cols-2">
+          <div className="flex flex-col space-y-2">
+            <h2 className="text-xl font-semibold text-center">Input</h2>
             <LanguageSelect
               language={inputLanguage}
-              onChange={(value) => {
-                setInputLanguage(value);
+              onChange={(val) => {
+                setInputLanguage(val);
                 setHasTranslated(false);
                 setInputCode('');
                 setOutputCode('');
@@ -152,12 +159,12 @@ export default function Home() {
             )}
           </div>
 
-          <div className="flex flex-1 flex-col space-y-4">
-            <div className="text-center text-xl font-bold">Output</div>
+          <div className="flex flex-col space-y-2">
+            <h2 className="text-xl font-semibold text-center">Output</h2>
             <LanguageSelect
               language={outputLanguage}
-              onChange={(value) => {
-                setOutputLanguage(value);
+              onChange={(val) => {
+                setOutputLanguage(val);
                 setOutputCode('');
               }}
             />
@@ -168,7 +175,7 @@ export default function Home() {
             )}
           </div>
         </div>
-      </div>
+      </main>
     </>
   );
 }
