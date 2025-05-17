@@ -8,6 +8,7 @@ export interface TranslateBody {
   apiKey: string;
 }
 
+
 export interface TranslateResponse {
   code: string;
 }
