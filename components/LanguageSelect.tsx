@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from '@mui/material';
 
 interface Props {
   language: string;
@@ -6,24 +7,41 @@ interface Props {
 }
 
 export const LanguageSelect: FC<Props> = ({ language, onChange }) => {
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onChange(e.target.value);
+  const handleChange = (event: SelectChangeEvent<string>) => {
+    onChange(event.target.value);
   };
 
   return (
-    <select
-      className="w-full rounded-md bg-[#1F2937] px-4 py-2 text-neutral-200"
-      value={language}
-      onChange={handleChange}
-    >
-      {languages
-        .sort((a, b) => a.label.localeCompare(b.label))
-        .map((language) => (
-          <option key={language.value} value={language.value}>
-            {language.label}
-          </option>
-        ))}
-    </select>
+    <FormControl size="small" sx={{ minWidth: 180 }}>
+      <InputLabel sx={{ color: '#ddd' }}>Language</InputLabel>
+      <Select
+        value={language}
+        label="Language"
+        onChange={handleChange}
+        sx={{
+          backgroundColor: '#1F2937',
+          color: '#ddd',
+          borderRadius: 1,
+          '& .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#444',
+          },
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#666',
+          },
+          '& .MuiSvgIcon-root': {
+            color: '#ddd',
+          },
+        }}
+      >
+        {languages
+          .sort((a, b) => a.label.localeCompare(b.label))
+          .map(({ value, label }) => (
+            <MenuItem key={value} value={value}>
+              {label}
+            </MenuItem>
+          ))}
+      </Select>
+    </FormControl>
   );
 };
 
