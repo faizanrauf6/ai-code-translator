@@ -63,6 +63,7 @@ export default function Home() {
       signal: controller.signal,
       body: JSON.stringify(body),
     });
+    console.log('Response:', response);
 
     if (!response.ok) {
       setLoading(false);
