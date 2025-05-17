@@ -4,7 +4,6 @@ export async function OpenAIStream(
   outputLanguage: string,
   inputCode: string,
   model: string,
-  apiKey: string,
 ) {
   const prompt = `Translate the following code from ${inputLanguage} to ${outputLanguage}:\n\n${inputCode}`;
 
@@ -12,7 +11,7 @@ export async function OpenAIStream(
     const response = await fetch(`${process.env.OPENAI_API_HOST}/chat/completions`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
