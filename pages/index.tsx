@@ -57,7 +57,36 @@ export default function Home() {
 
     if (!response.ok) {
       setLoading(false);
-      toast.error('Something went wrong.');
+      try {
+        const errorText = await response.text();
+        // Try to parse double-encoded JSON
+        let errorMessage = 'Unknown error occurred.';
+        try {
+          const outer = JSON.parse(errorText);
+          if (outer.error) {
+            const inner = JSON.parse(outer.error);
+            errorMessage = inner.error?.message || errorText;
+          } else {
+            errorMessage = outer.message || errorText;
+          }
+        } catch {
+          errorMessage = errorText;
+        }
+
+        console.error('API Error:', errorMessage);
+        toast.custom((t) => (
+          <div
+            className={`max-w-md w-full bg-white text-black p-4 rounded shadow-lg ${
+              t.visible ? 'animate-enter' : 'animate-leave'
+            }`}
+          >
+            <p className="font-bold">API Error</p>
+            <pre className="text-sm whitespace-pre-wrap">{errorMessage}</pre>
+          </div>
+        ));
+      } catch (e) {
+        toast.error('Something went wrong while parsing error.');
+      }
       return;
     }
 
