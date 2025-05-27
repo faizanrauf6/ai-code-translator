@@ -1,15 +1,15 @@
-import { OpenAIModel } from '@/types/types';
+import { TogetherModel } from '@/types/types';
 import { FC } from 'react';
 import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from '@mui/material';
 
 interface Props {
-  model: OpenAIModel;
-  onChange: (model: OpenAIModel) => void;
+  model: TogetherModel;
+  onChange: (model: TogetherModel) => void;
 }
 
 export const ModelSelect: FC<Props> = ({ model, onChange }) => {
-  const handleChange = (event: SelectChangeEvent<OpenAIModel>) => {
-    onChange(event.target.value as OpenAIModel);
+  const handleChange = (event: SelectChangeEvent<TogetherModel>) => {
+    onChange(event.target.value as TogetherModel);
   };
 
   return (
@@ -34,16 +34,9 @@ export const ModelSelect: FC<Props> = ({ model, onChange }) => {
           },
         }}
       >
-        <MenuItem value="gpt-3.5-turbo">GPT-3.5-Turbo</MenuItem>
-        <MenuItem value="gpt-3.5-turbo-1106">GPT-3.5-Turbo-1106</MenuItem>
-        <MenuItem value="gpt-3.5-turbo-0613">GPT-3.5-Turbo-0613</MenuItem>
-        <MenuItem value="gpt-3.5-turbo-16k-0613">GPT-3.5-Turbo-16k-0613</MenuItem>
-        <MenuItem value="gpt-4-turbo">GPT-4-Turbo</MenuItem>
-        <MenuItem value="gpt-4-1106-preview">GPT-4-1106-Preview</MenuItem>
-        <MenuItem value="gpt-4-0613">GPT-4-0613</MenuItem>
-        <MenuItem value="gpt-4-32k-0613">GPT-4-32k-0613</MenuItem>
-        <MenuItem value="babbage-002">Babbage-002</MenuItem>
-        <MenuItem value="davinci-002">Davinci-002</MenuItem>
+        <MenuItem value="meta-llama/Llama-3.3-70B-Instruct-Turbo">CodeLlama 70B Instruct Turbo</MenuItem>
+        <MenuItem value="bigcode/starcoder2-15b">Starcoder2 15B</MenuItem>
+        <MenuItem value="deepseek-ai/deepseek-coder-33b-instruct">DeepSeek Coder 33B Instruct</MenuItem>
       </Select>
     </FormControl>
   );

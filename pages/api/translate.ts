@@ -1,6 +1,5 @@
-// pages/api/translate.ts
- import { OpenAIStream } from '@/utils';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { TogetherTranslate } from '@/utils';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -9,31 +8,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const { inputLanguage, outputLanguage, inputCode, model } = req.body;
-
-    const stream = await OpenAIStream(inputLanguage, outputLanguage, inputCode, model);
-    if (!stream) {
-      return res.status(500).json({ error: 'Stream initialization failed' });
-    }
-
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-    });
-
-    stream.pipeTo(new WritableStream({
-      write(chunk) {
-        res.write(chunk);
-      },
-      close() {
-        res.end();
-      },
-      abort(err) {
-        console.error('Stream aborted', err);
-        res.end();
-      },
-    }));
+    const translatedCode = await TogetherTranslate(inputLanguage, outputLanguage, inputCode, model);
+    return res.status(200).json({ code: translatedCode });
   } catch (error: any) {
     console.error('API Handler Error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: error.message || 'Internal Server Error',
     });
   }
