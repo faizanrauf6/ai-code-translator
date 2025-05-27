@@ -2,7 +2,7 @@
 
 Use AI to translate code from one language to another.
 
-![Creativeminds AI Code Translator](./public/screenshot.png)
+![Creativeminds AI Code Translator](./public/sscreenshot1.png)
 
 ## Running Locally
 

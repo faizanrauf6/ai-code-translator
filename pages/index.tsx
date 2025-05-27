@@ -2,7 +2,7 @@ import { CodeBlock } from '@/components/CodeBlock';
 import { LanguageSelect } from '@/components/LanguageSelect';
 import { ModelSelect } from '@/components/ModelSelect';
 import { TextBlock } from '@/components/TextBlock';
-import { OpenAIModel, TranslateBody } from '@/types/types';
+import { TogetherModel, TranslateBody } from '@/types/types';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -12,12 +12,12 @@ export default function Home() {
   const [outputLanguage, setOutputLanguage] = useState<string>('Python');
   const [inputCode, setInputCode] = useState<string>('');
   const [outputCode, setOutputCode] = useState<string>('');
-  const [model, setModel] = useState<OpenAIModel>('gpt-3.5-turbo');
+  const [model, setModel] = useState<TogetherModel>('meta-llama/Llama-3.3-70B-Instruct-Turbo');
   const [loading, setLoading] = useState<boolean>(false);
   const [hasTranslated, setHasTranslated] = useState<boolean>(false);
 
   const handleTranslate = async () => {
-    const maxCodeLength = model === 'gpt-3.5-turbo' ? 6000 : 12000;
+    const maxCodeLength = model === 'meta-llama/Llama-3.3-70B-Instruct-Turbo' ? 6000 : 12000;
 
     if (inputLanguage === outputLanguage) {
       toast.error('Please select different languages.');
@@ -90,29 +90,17 @@ export default function Home() {
       return;
     }
 
-    const data = response.body;
+    const data = await response.json();
     if (!data) {
       setLoading(false);
       toast.error('Something went wrong.');
       return;
     }
 
-    const reader = data.getReader();
-    const decoder = new TextDecoder();
-    let done = false;
-    let code = '';
-
-    while (!done) {
-      const { value, done: doneReading } = await reader.read();
-      done = doneReading;
-      const chunkValue = decoder.decode(value);
-      code += chunkValue;
-      setOutputCode((prev) => prev + chunkValue);
-    }
-
     setLoading(false);
+    setOutputCode(data.code.trim());
     setHasTranslated(true);
-    copyToClipboard(code);
+    copyToClipboard(data.code.trim());
     toast.success('Output copied to clipboard!');
   };
 
